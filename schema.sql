@@ -1,20 +1,36 @@
+-- =========================================================
+-- Pool League Manager — SQLite Schema
+-- =========================================================
+-- Usage:
+--   sqlite3 league.db < schema.sql
+--
+-- Hierarchy:
+--   semesters -> sessions (weekly nights) -> rounds -> matches
+-- =========================================================
+
 PRAGMA foreign_keys = ON;
 
+-- ---------------------------------------------------------
+-- PLAYERS
+-- ---------------------------------------------------------
 CREATE TABLE players (
     player_id     INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name    TEXT NOT NULL,
     last_name     TEXT NOT NULL,
     is_member     INTEGER NOT NULL DEFAULT 0 CHECK (is_member IN (0, 1)),
     joined_date   TEXT NOT NULL DEFAULT (date('now')),
-    base_elo      FLOAT NOT NULL DEFAULT 1000,
-    current_elo   FLOAT NOT NULL DEFAULT 1000,
+    base_elo      FLOAT NOT NULL DEFAULT 1000,     -- permanent starting point, set once
+    current_elo   FLOAT NOT NULL DEFAULT 1000,     -- live rating, derived/recalculable
     is_active     INTEGER NOT NULL DEFAULT 1 CHECK (is_active IN (0, 1)),
     notes         TEXT
 );
 
+-- ---------------------------------------------------------
+-- semesters (semesters)
+-- ---------------------------------------------------------
 CREATE TABLE semesters (
     semester_id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    name              TEXT NOT NULL,
+    name              TEXT NOT NULL,                     -- e.g. "Autumn 2026"
     start_date        TEXT NOT NULL,
     end_date          TEXT,
     status            TEXT NOT NULL DEFAULT 'active'
@@ -22,14 +38,24 @@ CREATE TABLE semesters (
     winner_player_id  INTEGER REFERENCES players(player_id)
 );
 
+-- Records each player's Elo at the moment a semester starts, so you can
+-- measure "movement this semester" separately from lifetime Elo, and their
+-- semester points — points are scoped to (semester_id, player_id), so a
+-- new semester naturally starts everyone back at zero without any extra
+-- reset logic. Points are earned by beating another player (see
+-- trg_award_semester_point below).
 CREATE TABLE semesters_players (
     semester_id     INTEGER NOT NULL REFERENCES semesters(semester_id) ON DELETE CASCADE,
     player_id     INTEGER NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
     starting_elo  INTEGER NOT NULL,
+    ending_elo    INTEGER,
     points        INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (semester_id, player_id)
 );
 
+-- ---------------------------------------------------------
+-- SESSIONS (weekly league nights)
+-- ---------------------------------------------------------
 CREATE TABLE sessions (
     session_id    INTEGER PRIMARY KEY AUTOINCREMENT,
     semester_id     INTEGER NOT NULL REFERENCES semesters(semester_id) ON DELETE CASCADE,
@@ -39,12 +65,17 @@ CREATE TABLE sessions (
     UNIQUE (semester_id, session_date)
 );
 
+-- Which players actually attended a given session — this is your pool
+-- of players to randomly pair up each round, and it's how you spot byes.
 CREATE TABLE session_attendance (
     session_id  INTEGER NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
     player_id   INTEGER NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
     PRIMARY KEY (session_id, player_id)
 );
 
+-- ---------------------------------------------------------
+-- ROUNDS (typically 5-8 per session)
+-- ---------------------------------------------------------
 CREATE TABLE rounds (
     round_id      INTEGER PRIMARY KEY AUTOINCREMENT,
     session_id    INTEGER NOT NULL REFERENCES sessions(session_id) ON DELETE CASCADE,
@@ -52,21 +83,28 @@ CREATE TABLE rounds (
     UNIQUE (session_id, round_number)
 );
 
+-- ---------------------------------------------------------
+-- MATCHES (one pairing, one round)
+-- player2_id NULL = bye for player1
+-- ---------------------------------------------------------
 CREATE TABLE matches (
     match_id             INTEGER PRIMARY KEY AUTOINCREMENT,
     round_id             INTEGER NOT NULL REFERENCES rounds(round_id) ON DELETE CASCADE,
     player1_id           INTEGER NOT NULL REFERENCES players(player_id),
-    player2_id           INTEGER REFERENCES players(player_id),
+    player2_id           INTEGER REFERENCES players(player_id),      -- NULL = bye
     winner_id            INTEGER REFERENCES players(player_id),
     player1_elo_before   INTEGER NOT NULL,
     player2_elo_before   INTEGER,
     player1_elo_after    INTEGER,
     player2_elo_after    INTEGER,
-    played_at            TEXT DEFAULT (datetime('now')),
+    played_at            TEXT,
     CHECK (player2_id IS NULL OR player1_id != player2_id),
     CHECK (winner_id IS NULL OR winner_id IN (player1_id, player2_id))
 );
 
+-- ---------------------------------------------------------
+-- ELO HISTORY (append-only log — one row per player per match)
+-- ---------------------------------------------------------
 CREATE TABLE elo_history (
     elo_history_id  INTEGER PRIMARY KEY AUTOINCREMENT,
     player_id       INTEGER NOT NULL REFERENCES players(player_id) ON DELETE CASCADE,
@@ -74,9 +112,12 @@ CREATE TABLE elo_history (
     elo_before      INTEGER NOT NULL,
     elo_after       INTEGER NOT NULL,
     elo_change      INTEGER NOT NULL,
-    recorded_at     TEXT DEFAULT (datetime('now'))
+    recorded_at     TEXT
 );
 
+-- ---------------------------------------------------------
+-- INDEXES
+-- ---------------------------------------------------------
 CREATE INDEX idx_matches_round     ON matches(round_id);
 CREATE INDEX idx_matches_player1   ON matches(player1_id);
 CREATE INDEX idx_matches_player2   ON matches(player2_id);
@@ -85,6 +126,11 @@ CREATE INDEX idx_rounds_session    ON rounds(session_id);
 CREATE INDEX idx_sessions_semester   ON sessions(semester_id);
 CREATE INDEX idx_attendance_player ON session_attendance(player_id);
 
+-- ---------------------------------------------------------
+-- TRIGGER: keep players.current_elo in sync automatically.
+-- Your Python app calculates the new Elo and inserts one row
+-- into elo_history — this trigger does the rest.
+-- ---------------------------------------------------------
 CREATE TRIGGER trg_sync_player_elo
 AFTER INSERT ON elo_history
 BEGIN
@@ -93,6 +139,12 @@ BEGIN
     WHERE player_id = NEW.player_id;
 END;
 
+-- ---------------------------------------------------------
+-- VIEW: all-time standings across every semester.
+-- starting_elo = base_elo (their original starting point),
+-- points = sum of every semester's points, wins/losses/byes/
+-- matches_played computed across ALL matches ever played.
+-- ---------------------------------------------------------
 CREATE VIEW v_alltime_standings AS
 SELECT
     p.player_id,
@@ -126,18 +178,30 @@ LEFT JOIN (
     GROUP BY pid
 ) stats ON stats.pid = p.player_id;
 
+-- ---------------------------------------------------------
+-- VIEW: same as v_alltime_standings, restricted to currently
+-- active players. Kept as a thin filter on the view above so
+-- there's a single source of truth for the aggregation logic.
+-- ---------------------------------------------------------
 CREATE VIEW v_alltime_standings_active AS
 SELECT v.*
 FROM v_alltime_standings v
 JOIN players p ON p.player_id = v.player_id
 WHERE p.is_active = 1;
 
+-- ---------------------------------------------------------
+-- VIEW: live semester standings, computed on the fly so it can
+-- never drift out of sync with the underlying match data.
+-- points comes straight from semesters_players, since that's the
+-- authoritative running total maintained by db.py.
+-- ---------------------------------------------------------
 CREATE VIEW v_semester_standings AS
 SELECT
     sp.semester_id,
     sp.player_id,
     p.first_name || ' ' || p.last_name AS player_name,
     sp.starting_elo,
+    sp.ending_elo,
     p.current_elo AS current_elo,
     sp.points AS points,
     COUNT(CASE WHEN m.winner_id = sp.player_id THEN 1 END) AS wins,
@@ -164,6 +228,9 @@ LEFT JOIN matches  m ON m.round_id = r.round_id
                      AND (m.player1_id = sp.player_id OR m.player2_id = sp.player_id)
 GROUP BY sp.semester_id, sp.player_id;
 
+-- ---------------------------------------------------------
+-- VIEW: a player's full Elo timeline, handy for a graph in the GUI
+-- ---------------------------------------------------------
 CREATE VIEW v_player_elo_timeline AS
 SELECT
     eh.player_id,

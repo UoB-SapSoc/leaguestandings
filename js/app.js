@@ -100,7 +100,7 @@
   function renderHeader() {
     const lastPlayed = queryScalar("SELECT MAX(played_at) FROM matches");
     els.dbUpdated.textContent = lastPlayed
-      ? `Results through ${formatDate(lastPlayed)}`
+      ? `Results last updated ${formatDate(lastPlayed)}`
       : "Awaiting first results";
   }
 
@@ -182,7 +182,7 @@
 
     if (currentView === "alltime") {
       rows = queryAll(
-        `SELECT player_id, player_name, current_elo, starting_elo, points, wins, losses, byes, matches_played
+        `SELECT player_id, player_name, current_elo, starting_elo, points, wins, losses, matches_played
          FROM v_alltime_standings ORDER BY current_elo DESC`
       );
       mode = "career";
@@ -191,7 +191,7 @@
         "Ranked by current Elo across every semester played. Points are the sum of semester points earned.";
     } else if (currentView === "active") {
       rows = queryAll(
-        `SELECT player_id, player_name, current_elo, starting_elo, points, wins, losses, byes, matches_played
+        `SELECT player_id, player_name, current_elo, starting_elo, points, wins, losses, matches_played
          FROM v_alltime_standings_active ORDER BY current_elo DESC`
       );
       mode = "career";
@@ -202,7 +202,7 @@
         rows = [];
       } else {
         rows = queryAll(
-          `SELECT player_id, player_name, current_elo, starting_elo, points, wins, losses, byes, matches_played
+          `SELECT player_id, player_name, current_elo, starting_elo, ending_elo, points, wins, losses, matches_played
            FROM v_semester_standings WHERE semester_id = ? ORDER BY points DESC, current_elo DESC`,
           [currentSemesterId]
         );
@@ -230,13 +230,21 @@
 
     els.standingsBody.innerHTML = rows
       .map((r, i) => {
+        let elo
+        if (r.ending_elo) {
+          elo = r.ending_elo;
+        } else {
+          elo = r.current_elo;
+        }
+
         const delta =
           mode === "semester"
-            ? r.current_elo - r.starting_elo
+            ? elo - r.starting_elo
             : r.current_elo - r.starting_elo; // starting_elo = base_elo in v_alltime_standings
         const trendClass = delta > 0 ? "up" : delta < 0 ? "down" : "flat";
         const trendSign = delta > 0 ? "+" : "";
         const isInactive = !activeIds.has(r.player_id);
+
         return `
         <tr tabindex="0" data-player-id="${r.player_id}" class="${
           isInactive && currentView !== "active" ? "inactive-row" : ""
@@ -245,11 +253,10 @@
           <td class="col-name">${escapeHtml(r.player_name)}${
           isInactive ? '<span class="member-dot" title="Inactive player" aria-hidden="true"></span>' : ""
         }</td>
-          <td class="col-elo">${Math.round(r.current_elo)}</td>
+          <td class="col-elo">${Math.round(elo)}</td>
           <td class="col-trend"><span class="trend ${trendClass}">${trendSign}${Math.round(delta)}</span></td>
           <td class="col-points">${r.points}</td>
           <td class="col-record">${r.wins}&#8211;${r.losses}</td>
-          <td class="col-byes">${r.byes}</td>
           <td class="col-played">${r.matches_played}</td>
         </tr>`;
       })
@@ -310,13 +317,14 @@
     els.heroSection.hidden = true;
     els.boardSection.hidden = true;
     els.detailSection.hidden = false;
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 450, behavior: "smooth" });
   }
 
   function closeDetail() {
     els.detailSection.hidden = true;
     els.heroSection.hidden = false;
     els.boardSection.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function renderEloChart(playerId, baseElo) {
@@ -365,7 +373,7 @@
       1
     )} L${points[0][0].toFixed(1)},${(padTop + plotH).toFixed(1)} Z`;
 
-    const gridLines = [0, 0.5, 1]
+    const gridLines = [0, 0.25, 0.5, 0.75, 1]
       .map((f) => {
         const y = padTop + plotH * f;
         const val = Math.round(max - range * f);
@@ -409,25 +417,33 @@
     els.matchList.innerHTML = matches
       .map((m) => {
         let resultClass, resultLabel, opponentText;
+
         if (m.player2_id === null) {
           resultClass = "bye";
           resultLabel = "Bye";
           opponentText = "No opponent";
+
         } else if (m.winner_id === playerId) {
           resultClass = "win";
           resultLabel = "Win";
           opponentText = `vs ${m.opponent_name}`;
+
         } else if (m.winner_id) {
           resultClass = "loss";
           resultLabel = "Loss";
           opponentText = `vs ${m.opponent_name}`;
+
         } else {
           resultClass = "bye";
           resultLabel = "Unplayed";
           opponentText = `vs ${m.opponent_name}`;
         }
-        const delta = m.elo_after != null && m.elo_before != null ? m.elo_after - m.elo_before : null;
-        const deltaText = delta == null ? "" : ` (${delta > 0 ? "+" : ""}${delta} Elo)`;
+
+        let delta
+        delta = m.elo_after != null && m.elo_before != null ? m.elo_after - m.elo_before : null;
+        delta = Math.round(delta)
+
+        const deltaText = delta == null ? "" : ` (${delta > 0 ? "+" : ""}${delta})`;
         return `
         <li>
           <span class="match-opponent">${escapeHtml(opponentText)}</span>

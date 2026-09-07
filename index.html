@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rail &amp; Rack — League Standings</title>
+<title>SapSoc — League Standings</title>
 <meta name="description" content="Standings, Elo ratings, and match history for the pool league.">
 <link rel="icon" href="data:,">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -18,14 +18,12 @@
 <header class="site-header">
   <div class="wrap header-inner">
     <div class="brand">
-      <svg class="brand-mark" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
-        <circle cx="17" cy="17" r="15.5" fill="var(--cue-white)" stroke="var(--wood-dark)" stroke-width="1.5"/>
-        <circle cx="17" cy="17" r="6" fill="var(--brass)"/>
-        <text x="17" y="20.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" font-weight="600" fill="var(--felt-deep)">8</text>
-      </svg>
+      
+      <img src="assets/crest.png" class="brand-mark" width="34" height="40" alt="Coat of Arms" />
+
       <div class="brand-text">
-        <span class="brand-name">Rail &amp; Rack</span>
-        <span class="brand-sub">Thursday Night Pool League</span>
+        <span class="brand-name">SapSoc</span>
+        <span class="brand-sub">Birmingham University Pool League</span>
       </div>
     </div>
     <div class="header-meta" id="headerMeta">
@@ -38,40 +36,36 @@
 
   <section class="hero wrap" id="heroSection">
     <div class="hero-copy">
-      <h1>Standings, straight off the felt.</h1>
-      <p class="hero-lede">Every Thursday's results, racked and ranked. Elo ratings update after each match, points reset each semester, and the all-time ledger never forgets a scratch.</p>
+      <h1>League Standings.</h1>
+      <p class="hero-lede">Sessions held every Wednesday. Started Recording Oct 2024</p>
       <div class="hero-stats" id="heroStats" role="list"></div>
     </div>
     <div class="hero-art" aria-hidden="true">
-      <svg viewBox="0 0 220 160" width="220" height="160">
-        <defs>
-          <clipPath id="stripeClip9"><rect x="59" y="118" width="34" height="12" /></clipPath>
-          <clipPath id="stripeClip10"><rect x="93" y="118" width="34" height="12" /></clipPath>
-        </defs>
-        <!-- row 1 -->
-        <g><circle cx="110" cy="30" r="15" fill="#F2C230"/><text x="110" y="34.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#241305">1</text></g>
-        <!-- row 2 -->
-        <g><circle cx="93" cy="59" r="15" fill="#2C5AA0"/><text x="93" y="63.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">2</text></g>
-        <g><circle cx="127" cy="59" r="15" fill="#C1392B"/><text x="127" y="63.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">3</text></g>
-        <!-- row 3 -->
-        <g><circle cx="76" cy="88" r="15" fill="#7B4FA0"/><text x="76" y="92.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">4</text></g>
-        <g><circle cx="110" cy="88" r="15" fill="#151515"/><text x="110" y="92.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">8</text></g>
-        <g><circle cx="144" cy="88" r="15" fill="#E07B27"/><text x="144" y="92.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">5</text></g>
-        <!-- row 4 -->
-        <g><circle cx="59" cy="118" r="15" fill="#2C7A4B"/><text x="59" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">6</text></g>
-        <g>
-          <circle cx="93" cy="118" r="15" fill="#F3ECD8"/>
-          <circle cx="93" cy="118" r="15" fill="#F2C230" clip-path="url(#stripeClip9)"/>
-          <circle cx="93" cy="118" r="15" fill="none" stroke="#d8cfb4" stroke-width="1"/>
-          <text x="93" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#241305">9</text>
-        </g>
-        <g>
-          <circle cx="127" cy="118" r="15" fill="#F3ECD8"/>
-          <circle cx="127" cy="118" r="15" fill="#2C5AA0" clip-path="url(#stripeClip10)"/>
-          <circle cx="127" cy="118" r="15" fill="none" stroke="#d8cfb4" stroke-width="1"/>
-          <text x="127" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="#241305">10</text>
-        </g>
-        <g><circle cx="161" cy="118" r="15" fill="#7B2D2D"/><text x="161" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">7</text></g>
+      <svg viewBox="0 0 220 180" width="220" height="180">
+        <!-- Row 1 (Apex) -->
+        <circle cx="110" cy="25" r="12" fill="#F2C230" /> 
+
+        <!-- Row 2 -->
+        <circle cx="97" cy="48" r="12" fill="#F2C230" />  
+        <circle cx="123" cy="48" r="12" fill="#C1392B" /> 
+
+        <!-- Row 3 -->
+        <circle cx="84" cy="71" r="12" fill="#C1392B" />  
+        <circle cx="110" cy="71" r="12" fill="#111111" /> 
+        <circle cx="136" cy="71" r="12" fill="#F2C230" /> 
+
+        <!-- Row 4 -->
+        <circle cx="71" cy="94" r="12" fill="#F2C230" /> 
+        <circle cx="97" cy="94" r="12" fill="#C1392B" /> 
+        <circle cx="123" cy="94" r="12" fill="#F2C230" /> 
+        <circle cx="149" cy="94" r="12" fill="#C1392B" />
+
+        <!-- Row 5 (Base) -->
+        <circle cx="58" cy="117" r="12" fill="#C1392B" />
+        <circle cx="84" cy="117" r="12" fill="#F2C230" />
+        <circle cx="110" cy="117" r="12" fill="#F2C230" />
+        <circle cx="136" cy="117" r="12" fill="#C1392B" />
+        <circle cx="162" cy="117" r="12" fill="#F2C230" />
       </svg>
     </div>
   </section>
@@ -99,12 +93,11 @@
             <th class="col-trend">Form</th>
             <th class="col-points" id="pointsHeader">Points</th>
             <th class="col-record">W&#8211;L</th>
-            <th class="col-byes">Byes</th>
             <th class="col-played">Played</th>
           </tr>
         </thead>
         <tbody id="standingsBody">
-          <tr class="loading-row"><td colspan="8">Racking up the numbers…</td></tr>
+          <tr class="loading-row"><td colspan="7">Racking up the numbers…</td></tr>
         </tbody>
       </table>
     </div>
