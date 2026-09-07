@@ -1,7 +1,7 @@
 # SapSoc League Standing Website
 
-A static, GitHub Pages–ready website for the pool league. It reads
-`data/league.db` (a SQLite database matching the provided schema) directly
+A static, GitHub Pages website for the SapSoc pool league. It reads
+`data/league.db` (a SQLite database matching schema.sql) directly
 in the visitor's browser using [sql.js](https://sql.js.org)
 
 ## Where does the data come from?
