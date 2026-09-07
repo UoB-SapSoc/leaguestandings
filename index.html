@@ -1,39 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Test Site</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      background-color: #f4f4f4;
-      margin-top: 50px;
-    }
-    h1 {
-      color: #333;
-    }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rail &amp; Rack — League Standings</title>
+<meta name="description" content="Standings, Elo ratings, and match history for the pool league.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
-  <h1>🚀 It works!</h1>
-  <p>If you can see this on your GitHub Pages site, you're live.</p>
+<div class="table-shadow" aria-hidden="true"></div>
 
-  <button onclick="showMessage()">Click me</button>
+<header class="site-header">
+  <div class="wrap header-inner">
+    <div class="brand">
+      <svg class="brand-mark" width="34" height="34" viewBox="0 0 34 34" aria-hidden="true">
+        <circle cx="17" cy="17" r="15.5" fill="var(--cue-white)" stroke="var(--wood-dark)" stroke-width="1.5"/>
+        <circle cx="17" cy="17" r="6" fill="var(--brass)"/>
+        <text x="17" y="20.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="8" font-weight="600" fill="var(--felt-deep)">8</text>
+      </svg>
+      <div class="brand-text">
+        <span class="brand-name">Rail &amp; Rack</span>
+        <span class="brand-sub">Thursday Night Pool League</span>
+      </div>
+    </div>
+    <div class="header-meta" id="headerMeta">
+      <span class="meta-item" id="dbUpdated">Loading league data…</span>
+    </div>
+  </div>
+</header>
 
-  <p id="message"></p>
+<main>
 
-  <script>
-    function showMessage() {
-      document.getElementById("message").textContent = "JavaScript is working 🎉";
-    }
-  </script>
+  <section class="hero wrap" id="heroSection">
+    <div class="hero-copy">
+      <h1>Standings, straight off the felt.</h1>
+      <p class="hero-lede">Every Thursday's results, racked and ranked. Elo ratings update after each match, points reset each semester, and the all-time ledger never forgets a scratch.</p>
+      <div class="hero-stats" id="heroStats" role="list"></div>
+    </div>
+    <div class="hero-art" aria-hidden="true">
+      <svg viewBox="0 0 220 160" width="220" height="160">
+        <defs>
+          <clipPath id="stripeClip9"><rect x="59" y="118" width="34" height="12" /></clipPath>
+          <clipPath id="stripeClip10"><rect x="93" y="118" width="34" height="12" /></clipPath>
+        </defs>
+        <!-- row 1 -->
+        <g><circle cx="110" cy="30" r="15" fill="#F2C230"/><text x="110" y="34.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#241305">1</text></g>
+        <!-- row 2 -->
+        <g><circle cx="93" cy="59" r="15" fill="#2C5AA0"/><text x="93" y="63.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">2</text></g>
+        <g><circle cx="127" cy="59" r="15" fill="#C1392B"/><text x="127" y="63.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">3</text></g>
+        <!-- row 3 -->
+        <g><circle cx="76" cy="88" r="15" fill="#7B4FA0"/><text x="76" y="92.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">4</text></g>
+        <g><circle cx="110" cy="88" r="15" fill="#151515"/><text x="110" y="92.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">8</text></g>
+        <g><circle cx="144" cy="88" r="15" fill="#E07B27"/><text x="144" y="92.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">5</text></g>
+        <!-- row 4 -->
+        <g><circle cx="59" cy="118" r="15" fill="#2C7A4B"/><text x="59" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">6</text></g>
+        <g>
+          <circle cx="93" cy="118" r="15" fill="#F3ECD8"/>
+          <circle cx="93" cy="118" r="15" fill="#F2C230" clip-path="url(#stripeClip9)"/>
+          <circle cx="93" cy="118" r="15" fill="none" stroke="#d8cfb4" stroke-width="1"/>
+          <text x="93" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#241305">9</text>
+        </g>
+        <g>
+          <circle cx="127" cy="118" r="15" fill="#F3ECD8"/>
+          <circle cx="127" cy="118" r="15" fill="#2C5AA0" clip-path="url(#stripeClip10)"/>
+          <circle cx="127" cy="118" r="15" fill="none" stroke="#d8cfb4" stroke-width="1"/>
+          <text x="127" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" font-weight="600" fill="#241305">10</text>
+        </g>
+        <g><circle cx="161" cy="118" r="15" fill="#7B2D2D"/><text x="161" y="122.5" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" font-weight="600" fill="#F3ECD8">7</text></g>
+      </svg>
+    </div>
+  </section>
 
+  <section class="board wrap" id="boardSection">
+    <div class="board-controls">
+      <div class="tabs" role="tablist" aria-label="Leaderboard view">
+        <button class="tab" data-view="alltime" role="tab" aria-selected="true">All-time</button>
+        <button class="tab" data-view="active" role="tab" aria-selected="false">Active players</button>
+        <button class="tab" data-view="semester" role="tab" aria-selected="false">By semester</button>
+      </div>
+      <div class="semester-picker" id="semesterPicker" hidden>
+        <label for="semesterSelect">Semester</label>
+        <select id="semesterSelect"></select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="standings" id="standingsTable">
+        <thead>
+          <tr>
+            <th class="col-rank">#</th>
+            <th class="col-name">Player</th>
+            <th class="col-elo">Elo</th>
+            <th class="col-trend">Form</th>
+            <th class="col-points" id="pointsHeader">Points</th>
+            <th class="col-record">W&#8211;L</th>
+            <th class="col-byes">Byes</th>
+            <th class="col-played">Played</th>
+          </tr>
+        </thead>
+        <tbody id="standingsBody">
+          <tr class="loading-row"><td colspan="8">Racking up the numbers…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="table-note" id="tableNote"></p>
+  </section>
+
+  <section class="detail wrap" id="detailSection" hidden>
+    <button class="back-link" id="closeDetail" type="button">&larr; Back to standings</button>
+    <div class="detail-head">
+      <div>
+        <h2 id="detailName">&nbsp;</h2>
+        <p class="detail-sub" id="detailSub">&nbsp;</p>
+      </div>
+      <div class="detail-figures" id="detailFigures"></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-head">
+        <h3>Elo history</h3>
+        <span class="chart-range" id="chartRange"></span>
+      </div>
+      <div class="chart-wrap" id="eloChart"></div>
+    </div>
+    <div class="matches-card">
+      <h3>Recent matches</h3>
+      <ul class="match-list" id="matchList"></ul>
+    </div>
+  </section>
+
+  <section class="empty-state wrap" id="emptyState" hidden>
+    <h2>No league data yet</h2>
+    <p>This page couldn't find any players in <code>data/league.db</code>. Once results are loaded into the database, standings will appear here automatically.</p>
+  </section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <p>Rail &amp; Rack League &middot; data refreshes whenever <code>data/league.db</code> is updated.</p>
+  </div>
+</footer>
+
+<script src="vendor/sql-wasm.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
