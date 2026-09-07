@@ -30,7 +30,8 @@ CREATE TABLE players (
 -- ---------------------------------------------------------
 CREATE TABLE semesters (
     semester_id         INTEGER PRIMARY KEY AUTOINCREMENT,
-    name              TEXT NOT NULL,                     -- e.g. "Autumn 2026"
+    name              TEXT NOT NULL,
+    display_name      TEXT NOT NULL,
     start_date        TEXT NOT NULL,
     end_date          TEXT,
     status            TEXT NOT NULL DEFAULT 'active'

@@ -108,7 +108,7 @@
     const activePlayers = queryScalar("SELECT COUNT(*) FROM players WHERE is_active = 1");
     const totalMatches = queryScalar("SELECT COUNT(*) FROM matches WHERE player2_id IS NOT NULL");
     const current = queryAll(
-      `SELECT name FROM semesters WHERE status = 'active' ORDER BY start_date DESC LIMIT 1`
+      `SELECT display_name FROM semesters WHERE status = 'active' ORDER BY start_date DESC LIMIT 1`
     );
     const top = queryAll(
       `SELECT player_name, current_elo FROM v_alltime_standings_active ORDER BY current_elo DESC LIMIT 1`
@@ -119,7 +119,7 @@
       { label: "Matches played", figure: String(totalMatches ?? 0) },
       {
         label: "Current semester",
-        figure: current.length ? current[0].name : "Off-season",
+        figure: current.length ? current[0].display_name : "Off-season",
       },
     ];
     if (top.length) {
