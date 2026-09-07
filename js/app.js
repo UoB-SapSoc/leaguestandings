@@ -144,12 +144,12 @@
 
   function populateSemesterPicker() {
     const semesters = queryAll(
-      `SELECT semester_id, name, status FROM semesters ORDER BY start_date DESC`
+      `SELECT semester_id, display_name, status FROM semesters ORDER BY start_date DESC`
     );
     els.semesterSelect.innerHTML = semesters
       .map(
         (s) =>
-          `<option value="${s.semester_id}">${escapeHtml(s.name)}${
+          `<option value="${s.semester_id}">${escapeHtml(s.display_name)}${
             s.status === "active" ? " (current)" : ""
           }</option>`
       )
