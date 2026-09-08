@@ -1,5 +1,5 @@
 /* ============================================================
-   Rail & Rack — design tokens
+   Sapsoc League — design tokens
    A scorecard-and-felt aesthetic: paper ledger base, deep felt
    green for structure, brass for signal, walnut for rules.
    ============================================================ */
@@ -41,6 +41,12 @@
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .hero-art {
+    display: none;
   }
 }
 
@@ -538,4 +544,110 @@ td.col-trend { text-align: right; }
   table.standings td, table.standings th { padding: 10px 8px; font-size: 0.86rem; }
   .detail-head { flex-direction: column; align-items: flex-start; }
   .detail-figures { gap: 18px; }
+}
+
+/* ============================================================
+   Dark Theme Overrides — "After-Hours Billiard Room"
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* Palette Shift */
+    --paper:         #080705; /* Deep mahogany / dark wood base */
+    --paper-dim:     #14120f; /* Secondary dark ledger background */
+    --ledger-line:   #342A22; /* Subtle divider lines */
+    --ink:           #E8DFCE; /* Warm parchment text */
+    --ink-soft:      #A89A84; /* Soft muted ledger text */
+
+    --felt-deep:     #0A1A14; /* Deep night felt (Headers/Cards) */
+    --felt:          #163C2E; /* Rich green highlights */
+    --felt-light:    #225340;
+
+    --wood:          #4A2E1A; /* Warm walnut accents */
+    --wood-dark:     #24150A; /* Deep borders */
+
+    --brass:         #D4A04B; /* Brighter brass for contrast */
+    --brass-light:   #ebcd95;
+
+    --cue-white:     #181512; /* Inverted background for cards */
+    --loss-red:      #E05C4F; /* Vibrant ruby red for dark BG */
+
+    color-scheme: dark;
+  }
+
+  /* Specific element adjustments for dark mode contrast */
+  .site-header,
+  .site-footer {
+    background: #091410;
+    border-bottom-color: var(--wood);
+  }
+
+  .brand-name {
+  color: var(--ink); /* Bright parchment shade */
+  }
+
+  .back-link {
+    color: var(--brass-light)
+  }
+
+  .detail-figures .figure {
+    color: var(--brass-light)
+  }
+
+  .tabs {
+    background: var(--paper-dim);
+    border-color: var(--ledger-line);
+  }
+
+  .tab[aria-selected="true"] {
+    background: var(--felt);
+    color: #FAF6ED;
+  }
+
+  .semester-picker select {
+    background: var(--paper-dim);
+    color: var(--ink);
+    border-color: var(--ledger-line);
+  }
+
+  table.standings tbody tr:hover {
+    background: rgba(212, 160, 75, 0.08); /* Warm brass hover glow */
+  }
+
+  .hero h1,
+  .detail-head h2,
+  .chart-card-head h3,
+  .matches-card h3 {
+    color: var(--brass-light);
+  }
+
+  .hero-stat .figure {
+    color: var(--brass-light);
+  }
+
+  .chart-card,
+  .matches-card {
+    background: var(--paper-dim);
+    border-color: var(--ledger-line);
+    border-top-color: var(--felt);
+  }
+
+  .trend.up,
+  .match-result.win {
+    color: #4ADE80;
+    background: rgba(74, 222, 128, 0.12);
+  }
+
+  .trend.down,
+  .match-result.loss {
+    color: #F87171;
+    background: rgba(248, 113, 113, 0.12);
+  }
+
+  .empty-state code,
+  .table-note code,
+  .footer-inner code {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--brass-light);
+  }
 }

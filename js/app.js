@@ -1,4 +1,4 @@
-/* Rail & Rack — league site
+/* Sapsoc — league site
  * Reads data/league.db (a SQLite file) entirely client-side with sql.js
  * (compiled SQLite via WebAssembly) and renders standings + player detail.
  * Replace data/league.db with an updated export any time — no build step.
@@ -405,7 +405,7 @@
        LEFT JOIN players p2 ON p2.player_id = m.player2_id
        WHERE m.player1_id = ?1 OR m.player2_id = ?1
        ORDER BY m.played_at DESC
-       LIMIT 15`,
+       LIMIT 25`,
       [playerId]
     );
 
@@ -455,6 +455,29 @@
   }
 
   /* ---------------- utils ---------------- */
+
+  // Function to check mobile view and toggle CSS classes
+  function updateInterface() {
+    const isMobile = window.matchMedia("(max-width: 768px)").matches;
+
+    if (isMobile) {
+      document.body.classList.add("is-mobile");
+      document.body.classList.remove("is-desktop");
+      // Run mobile-specific logic (e.g., render hamburger menu)
+    } else {
+      document.body.classList.add("is-desktop");
+      document.body.classList.remove("is-mobile");
+      // Run desktop-specific logic
+    }
+  }
+
+  // Initial check on load
+  updateInterface();
+
+  // Listen for screen resize or orientation changes dynamically
+  window.matchMedia("(max-width: 768px)").addEventListener("change", (e) => {
+    updateInterface();
+  });
 
   function formatDate(str) {
     if (!str) return "";
