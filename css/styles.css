@@ -562,6 +562,7 @@ td.col-trend { text-align: right; }
     --felt-deep:     #0A1A14; /* Deep night felt (Headers/Cards) */
     --felt:          #163C2E; /* Rich green highlights */
     --felt-light:    #225340;
+    --felt-v-light:  #3f8168;
 
     --wood:          #4A2E1A; /* Warm walnut accents */
     --wood-dark:     #24150A; /* Deep borders */
@@ -630,6 +631,16 @@ td.col-trend { text-align: right; }
     background: var(--paper-dim);
     border-color: var(--ledger-line);
     border-top-color: var(--felt);
+  }
+
+  /* Target all grid lines inside the chart */
+  #eloChart svg line {
+    stroke: var(--ledger-line);       /* Changes the stroke color */
+    stroke-width: 2px;     /* Changes the line thickness */
+  }
+
+  #eloChart svg path {
+    stroke: var(--felt-v-light);       /* Changes the stroke color */
   }
 
   .trend.up,
