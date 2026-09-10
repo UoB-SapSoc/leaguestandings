@@ -404,7 +404,7 @@
        LEFT JOIN players p1 ON p1.player_id = m.player1_id
        LEFT JOIN players p2 ON p2.player_id = m.player2_id
        WHERE m.player1_id = ?1 OR m.player2_id = ?1
-       ORDER BY m.played_at DESC
+       ORDER BY m.match_id DESC
        LIMIT 25`,
       [playerId]
     );
