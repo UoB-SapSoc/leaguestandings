@@ -17,13 +17,19 @@
 
 <header class="site-header">
   <div class="wrap header-inner">
-    <div class="brand">
-      
-      <img src="assets/crest.png" class="brand-mark" width="34" height="40" alt="Coat of Arms" />
+    <div class="header-left">
+      <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="navDrawer">
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+        <span class="menu-bar"></span>
+      </button>
+      <div class="brand">
+        <img src="assets/crest.png" class="brand-mark" width="34" height="40" alt="Coat of Arms" />
 
-      <div class="brand-text">
-        <span class="brand-name">SapSoc</span>
-        <span class="brand-sub">Birmingham University Pool League</span>
+        <div class="brand-text">
+          <span class="brand-name">SapSoc</span>
+          <span class="brand-sub">Birmingham University Pool League</span>
+        </div>
       </div>
     </div>
     <div class="header-meta" id="headerMeta">
@@ -31,6 +37,19 @@
     </div>
   </div>
 </header>
+
+<div class="drawer-overlay" id="drawerOverlay" hidden></div>
+<nav class="nav-drawer" id="navDrawer" aria-label="Site navigation" aria-hidden="true">
+  <div class="nav-drawer-head">
+    <span class="brand-name drawer-brand">Menu</span>
+    <button class="drawer-close" id="drawerClose" type="button" aria-label="Close menu">&times;</button>
+  </div>
+  <ul class="nav-list">
+    <li><button class="nav-link" data-nav="standings" type="button">Standings</button></li>
+    <li><button class="nav-link" data-nav="statistics" type="button">Statistics</button></li>
+    <li><button class="nav-link" data-nav="about" type="button">About</button></li>
+  </ul>
+</nav>
 
 <main>
 
@@ -131,7 +150,69 @@
     <p>This page couldn't find any players in <code>data/league.db</code>. Once results are loaded into the database, standings will appear here automatically.</p>
   </section>
 
+  <!--
+    About page. Edit the copy below to fit your league — this is
+    placeholder text describing how the site and rating system work.
+  -->
+  <section class="about wrap" id="aboutSection" hidden>
+    <button class="back-link" id="closeAbout" type="button">&larr; Back to standings</button>
+    <h2>About SapSoc League Website</h2>
+
+    <div class="about-grid">
+
+      <div class="about-block">
+        <h4>Where does the data come from?</h4>
+        <p>
+          Good question! The data is collected by an integrated application built by <a href="https://github.com/WilfMon" target="_blank">WilfMon</a>.
+          There you will find the schema.sql file that builds the database. <a href="https://github.com/WilfMon/UoB-SAPSOC---Pool-League-Manager" target="_blank">UoB-SAPSOC---Pool-League-Manager</a>    
+        </p>
+      </div>
+
+      <div class="about-block">
+        <h4>How is the website hosted?</h4>
+        <p>
+          The website is a static site hosted by GitHub pages at the repo <a href="https://github.com/UoB-SapSoc/leaguestandings" target="_blank">leaguestandings</a>
+        </p>
+      </div>
+
+    <h2>Elo System and Points Rules</h2>
+
+      <div class="about-block">
+        <p>
+          First, what is an elo rating system? An elo rating system is a method for calculating the relative skill level of players or teams. Originally designed by Arpad Elo,
+          it has been used in many popular games and sports suchas, tennis, chess and basketball.
+        </p>
+        <p>
+          How does it work? The elo rating of two players serves as a predictor of the outcome of the game. Players with equal rating are expected to win an equal number of games
+          given enough time. If one player is 100 elo above the other they are expected to win 59% of the games, 200 above should win 68% of the time. 
+          At the end of every game the winning player takes elo from the loser. The amount exchanged depends on the difference in rating between the players.
+          If the higher rated player wins only a small amount of points will be taken from the loser; however if the lower rated player wins more elo points will be transfered.
+          All this means that given enough games played each elo rating will correct to match the players relative skill compared to the other players in the league.
+        </p>
+        <p>
+          Specific methods used in this elo system. I have implimented a quick rank system, as every players starts on 1000 elo, this method aims to more quickly find the players skill level. 
+          When a new player joins the league, for the first several games the change in the players elo is multiplied after a match resolves. The multiplication factor follows the 
+          <a href="https://www.desmos.com/calculator/bgwoeszihb" target="_blank">graph</a>
+          where total games played is on the x-axis and multiplication factor is on the y-axis. In summary, the elo gained and lost decays exponetially from 3x to 1x between 0 and 16 games played.
+          I also implimented an elo decay mechanic which begins to remove elo from players if they are absent for 3 or more sessions. It gradually increases the amount lost after each session not attended. 
+          The amount decayed follows the pattern; 3 sessions missed in a row -5 elo at the end of the session, 4 missed -10 elo, 5 -15, 6 -25, 7 or more missed -50 elo. The limit of elo decay is 800. 
+          Also, after 5 sessions absent in a row the player becomes inactive and is marked that way on the leaderboard.
+        </p>
+        <p>
+          How do points work? When a match is resolved the winner takes 1 point by default and the losers points always remain the same. this is added to the players total.
+          If the winner of the match was on 10 or more points below the loser before the match the winner is awarded another 20% of the losers total points on top of 1 point by default.
+          Importantly, at the end of each semester the points reset and a semester champion is crowed as the player with the most points in that semester.
+        </p>
+      </div>
+
+    <div class="about-block about-contact">
+      <h3>Questions and contact</h3>
+      <p>Want to join the league or have any questions about the website? Reach out to the league organisers. Instagram @uobpool</p>
+    </div>
+  </section>
+
 </main>
+
 
 <footer class="site-footer">
   <div class="wrap footer-inner">

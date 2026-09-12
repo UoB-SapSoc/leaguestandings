@@ -29,6 +29,14 @@
     chartRange: document.getElementById("chartRange"),
     eloChart: document.getElementById("eloChart"),
     matchList: document.getElementById("matchList"),
+    menuBtn: document.getElementById("menuBtn"),
+    navDrawer: document.getElementById("navDrawer"),
+    drawerOverlay: document.getElementById("drawerOverlay"),
+    drawerClose: document.getElementById("drawerClose"),
+    navLinks: Array.from(document.querySelectorAll(".nav-link")),
+    statisticsSection: document.getElementById("statisticsSection"),
+    aboutSection: document.getElementById("aboutSection"),
+    closeAbout: document.getElementById("closeAbout"),
   };
 
   let db = null;
@@ -38,6 +46,8 @@
   init();
 
   async function init() {
+    wireNav();
+
     try {
       const SQL = await initSqlJs({ locateFile: (f) => `vendor/${f}` });
       const buf = await fetchDbBuffer();
@@ -160,6 +170,93 @@
       renderStandings();
     });
   }
+
+  /* ---------------- nav drawer / about ---------------- */
+
+  function wireNav() {
+    els.menuBtn.addEventListener("click", openDrawer);
+    els.drawerClose.addEventListener("click", closeDrawer);
+    els.drawerOverlay.addEventListener("click", closeDrawer);
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && els.navDrawer.classList.contains("open")) closeDrawer();
+    });
+    els.navLinks.forEach((link) => {
+      link.addEventListener("click", () => {
+        closeDrawer();
+        const navTarget = link.dataset.nav;
+
+        if (navTarget === "about") {
+          showAbout();
+        } else if (navTarget === "statistics") {
+          showStatistics();
+        } else {
+          showMainView();
+        }
+      });
+    });
+    els.closeAbout.addEventListener("click", showMainView);
+  }
+
+  function openDrawer() {
+    els.navDrawer.classList.add("open");
+    els.navDrawer.setAttribute("aria-hidden", "false");
+    els.drawerOverlay.hidden = false;
+    els.menuBtn.setAttribute("aria-expanded", "true");
+
+    // Move focus inside the drawer to the close button
+    els.drawerClose.focus();
+  }
+
+  function closeDrawer() {
+    const wasOpen = els.navDrawer.classList.contains("open");
+    els.navDrawer.classList.remove("open");
+    els.navDrawer.setAttribute("aria-hidden", "true");
+    els.drawerOverlay.hidden = true;
+    els.menuBtn.setAttribute("aria-expanded", "false");
+
+    // Return focus to the menu toggle button
+    if (wasOpen) {
+      els.menuBtn.focus();
+    }
+  }
+
+  function showStatistics() {
+    // Hide all other main sections
+    els.heroSection.hidden = true;
+    els.boardSection.hidden = true;
+    els.detailSection.hidden = true;
+    els.emptyState.hidden = true;
+    els.aboutSection.hidden = true;
+
+    // Show the statistics section (ensure statisticsSection is defined in your `els` object)
+    if (els.statisticsSection) {
+      els.statisticsSection.hidden = false;
+    }
+    
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function showAbout() {
+    els.heroSection.hidden = true;
+    els.boardSection.hidden = true;
+    els.detailSection.hidden = true;
+    els.emptyState.hidden = true;
+    els.aboutSection.hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function showMainView() {
+    els.aboutSection.hidden = true;
+    els.detailSection.hidden = true;
+    if (db && queryScalar("SELECT COUNT(*) FROM players")) {
+      els.heroSection.hidden = false;
+      els.boardSection.hidden = false;
+    } else {
+      els.emptyState.hidden = false;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
 
   /* ---------------- tabs ---------------- */
 
