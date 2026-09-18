@@ -150,6 +150,12 @@
     <p>This page couldn't find any players in <code>data/league.db</code>. Once results are loaded into the database, standings will appear here automatically.</p>
   </section>
 
+  <section class="statistics wrap" id="statisticsSection" hidden>
+    <button class="back-link" id="closeStats" type="button">&larr; Back to standings</button>
+    <h2>League Statistics</h2>
+  </section>
+
+
   <!--
     About page. Edit the copy below to fit your league — this is
     placeholder text describing how the site and rating system work.
@@ -196,7 +202,7 @@
           where total games played is on the x-axis and multiplication factor is on the y-axis. In summary, the elo gained and lost decays exponetially from 3x to 1x between 0 and 16 games played.
           I also implimented an elo decay mechanic which begins to remove elo from players if they are absent for 3 or more sessions. It gradually increases the amount lost after each session not attended. 
           The amount decayed follows the pattern; 3 sessions missed in a row -5 elo at the end of the session, 4 missed -10 elo, 5 -15, 6 -25, 7 or more missed -50 elo. The limit of elo decay is 800. 
-          Also, after 5 sessions absent in a row the player becomes inactive and is marked that way on the leaderboard.
+          Also, after 5 sessions absent in a row the player becomes inactive and is marked that way on the leaderboard for clarity.
         </p>
         <p>
           How do points work? When a match is resolved the winner takes 1 point by default and the losers points always remain the same. this is added to the players total.
@@ -207,7 +213,7 @@
 
     <div class="about-block about-contact">
       <h3>Questions and contact</h3>
-      <p>Want to join the league or have any questions about the website? Reach out to the league organisers. Instagram @uobpool</p>
+      <p>Want to join the league or have any questions about the website? Reach out to the league organisers. Instagram <a href="https://www.instagram.com/uobpool/" target="_blank">@uobpool</a></p>
     </div>
   </section>
 

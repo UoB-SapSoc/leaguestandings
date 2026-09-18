@@ -37,6 +37,7 @@
     statisticsSection: document.getElementById("statisticsSection"),
     aboutSection: document.getElementById("aboutSection"),
     closeAbout: document.getElementById("closeAbout"),
+    closeStats: document.getElementById("closeStats"),
   };
 
   let db = null;
@@ -70,6 +71,7 @@
     wireTabs();
     els.closeDetail.addEventListener("click", closeDetail);
     renderStandings();
+    renderStatistics();
   }
 
   async function fetchDbBuffer() {
@@ -195,6 +197,7 @@
       });
     });
     els.closeAbout.addEventListener("click", showMainView);
+    els.closeStats.addEventListener("click", showMainView);
   }
 
   function openDrawer() {
@@ -227,11 +230,7 @@
     els.detailSection.hidden = true;
     els.emptyState.hidden = true;
     els.aboutSection.hidden = true;
-
-    // Show the statistics section (ensure statisticsSection is defined in your `els` object)
-    if (els.statisticsSection) {
-      els.statisticsSection.hidden = false;
-    }
+    els.statisticsSection.hidden = false;
     
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
@@ -241,7 +240,9 @@
     els.boardSection.hidden = true;
     els.detailSection.hidden = true;
     els.emptyState.hidden = true;
+    els.statisticsSection.hidden = true;
     els.aboutSection.hidden = false;
+
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
@@ -255,6 +256,11 @@
       els.emptyState.hidden = false;
     }
     window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  /* ---------------- statistics ---------------- */
+  function renderStatistics(){
+    
   }
 
 
@@ -306,13 +312,13 @@
       }
       mode = "semester";
       els.pointsHeader.textContent = "Points";
-      const sem = queryAll(`SELECT name, status FROM semesters WHERE semester_id = ?`, [
+      const sem = queryAll(`SELECT display_name, status FROM semesters WHERE semester_id = ?`, [
         currentSemesterId,
       ]);
       els.tableNote.textContent = sem.length
-        ? `Semester points come from match wins in ${escapeHtml(sem[0].name)}${
+        ? `Semester points come from match wins in the semester: ${escapeHtml(sem[0].display_name)}${
             sem[0].status === "active" ? " (in progress)" : ""
-          }. Elo shown is each player's current rating.`
+          }. Elo shown is each player's rating at the end of the semester. Form is the elo gained or lost from the start of the semester.`
         : "";
     }
 
@@ -352,7 +358,7 @@
         }</td>
           <td class="col-elo">${Math.round(elo)}</td>
           <td class="col-trend"><span class="trend ${trendClass}">${trendSign}${Math.round(delta)}</span></td>
-          <td class="col-points">${r.points}</td>
+          <td class="col-points">${r.points.toFixed(1)}</td>
           <td class="col-record">${r.wins}&#8211;${r.losses}</td>
           <td class="col-played">${r.matches_played}</td>
         </tr>`;
