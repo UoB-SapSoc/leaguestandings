@@ -38,11 +38,18 @@
     aboutSection: document.getElementById("aboutSection"),
     closeAbout: document.getElementById("closeAbout"),
     closeStats: document.getElementById("closeStats"),
+    sessionsSection: document.getElementById("sessionsSection"),
+    closeSessions: document.getElementById("closeSessions"),
+    sessionsSemesterSelect: document.getElementById("sessionsSemesterSelect"),
+    sessionsTabs: Array.from(document.querySelectorAll(".sessions-tab")),
+    sessionsList: document.getElementById("sessionsList"),
+    sessionsNote: document.getElementById("sessionsNote"),
   };
 
   let db = null;
   let currentView = "alltime"; // 'alltime' | 'active' | 'semester'
   let currentSemesterId = null;
+  let sessionsView = "session"; // 'session' | 'player'
 
   init();
 
@@ -66,6 +73,8 @@
     }
 
     populateSemesterPicker();
+    populateSessionsFilter();
+    wireSessions();
     renderHeader();
     renderHero();
     wireTabs();
@@ -186,18 +195,15 @@
       link.addEventListener("click", () => {
         closeDrawer();
         const navTarget = link.dataset.nav;
-
-        if (navTarget === "about") {
-          showAbout();
-        } else if (navTarget === "statistics") {
-          showStatistics();
-        } else {
-          showMainView();
-        }
+        if (navTarget === "about") showAbout();
+        else if (navTarget === "statistics") showStatistics();
+        else if (navTarget === "sessions") showSessions();
+        else showMainView();
       });
     });
     els.closeAbout.addEventListener("click", showMainView);
     els.closeStats.addEventListener("click", showMainView);
+    els.closeSessions.addEventListener("click", showMainView);
   }
 
   function openDrawer() {
@@ -223,39 +229,32 @@
     }
   }
 
-  function showStatistics() {
-    // Hide all other main sections
-    els.heroSection.hidden = true;
-    els.boardSection.hidden = true;
-    els.detailSection.hidden = true;
-    els.emptyState.hidden = true;
-    els.aboutSection.hidden = true;
-    els.statisticsSection.hidden = false;
-    
+  const ALL_VIEWS = [
+      "heroSection", "boardSection", "detailSection", "emptyState",
+      "aboutSection", "statisticsSection", "sessionsSection",
+    ];
+
+  function showOnly(...visible) {
+    ALL_VIEWS.forEach((key) => { els[key].hidden = !visible.includes(key); });
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function showAbout() {
-    els.heroSection.hidden = true;
-    els.boardSection.hidden = true;
-    els.detailSection.hidden = true;
-    els.emptyState.hidden = true;
-    els.statisticsSection.hidden = true;
-    els.aboutSection.hidden = false;
+  function showStatistics() { showOnly("statisticsSection"); }
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+  function showAbout() { showOnly("aboutSection"); }
+
+  function showSessions() {
+    if (!db) return;
+    renderSessions();
+    showOnly("sessionsSection");
   }
 
   function showMainView() {
-    els.aboutSection.hidden = true;
-    els.detailSection.hidden = true;
     if (db && queryScalar("SELECT COUNT(*) FROM players")) {
-      els.heroSection.hidden = false;
-      els.boardSection.hidden = false;
+      showOnly("heroSection", "boardSection");
     } else {
-      els.emptyState.hidden = false;
+      showOnly("emptyState");
     }
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   /* ---------------- statistics ---------------- */
@@ -398,11 +397,19 @@
     ];
     els.detailSub.textContent = bits.join(" \u00b7 ");
 
+    const attended = queryScalar(
+      `SELECT COUNT(*) FROM session_attendance WHERE player_id = ?`, [playerId]
+    ) || 0;
+    const totalSessions = queryScalar(
+      `SELECT COUNT(*) FROM sessions WHERE status IN ('completed','in_progress')`
+    ) || 0;
+
     const figures = [
       { label: "Current Elo", figure: Math.round(player.current_elo) },
       { label: "Starting Elo", figure: Math.round(player.base_elo) },
       { label: "Career points", figure: player.points },
       { label: "Record", figure: `${player.wins}\u2013${player.losses}` },
+      { label: "Sessions attended", figure: `${attended} / ${totalSessions}` },
     ];
     els.detailFigures.innerHTML = figures
       .map(
@@ -417,6 +424,7 @@
     renderEloChart(playerId, player.base_elo);
     renderMatchList(playerId);
 
+    els.sessionsSection.hidden = true;
     els.heroSection.hidden = true;
     els.boardSection.hidden = true;
     els.detailSection.hidden = false;
@@ -555,6 +563,156 @@
         </li>`;
       })
       .join("");
+  }
+
+  /* ---------------- sessions ---------------- */
+
+  function populateSessionsFilter() {
+    const semesters = queryAll(
+      `SELECT semester_id, display_name, status FROM semesters ORDER BY start_date DESC`
+    );
+    els.sessionsSemesterSelect.innerHTML =
+      semesters
+        .map(
+          (s) =>
+            `<option value="${s.semester_id}">${escapeHtml(s.display_name)}${
+              s.status === "active" ? " (current)" : ""
+            }</option>`
+        )
+        .join("") + `<option value="all">All semesters</option>`;
+  }
+
+  function wireSessions() {
+    els.sessionsSemesterSelect.addEventListener("change", renderSessions);
+    els.sessionsTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        els.sessionsTabs.forEach((t) => t.setAttribute("aria-selected", "false"));
+        tab.setAttribute("aria-selected", "true");
+        sessionsView = tab.dataset.sview;
+        renderSessions();
+      });
+    });
+  }
+
+  function renderSessions() {
+    const sem = els.sessionsSemesterSelect.value;
+    const filtered = sem !== "all";
+    const params = filtered ? [Number(sem)] : [];
+    const semWhere = filtered ? "s.semester_id = ?" : "1=1";
+
+    if (sessionsView === "player") {
+      renderAttendanceByPlayer(semWhere, params);
+    } else {
+      renderAttendanceBySession(semWhere, params);
+    }
+  }
+
+  function renderAttendanceBySession(semWhere, params) {
+    const sessions = queryAll(
+      `SELECT s.session_id, s.session_date, s.status,
+              (SELECT COUNT(*) FROM session_attendance a WHERE a.session_id = s.session_id) AS attendees
+       FROM sessions s
+       WHERE ${semWhere}
+       ORDER BY s.session_date DESC`,
+      params
+    );
+
+    if (!sessions.length) {
+      els.sessionsList.innerHTML = `<p class="no-data" style="padding:32px;text-align:center;font-style:italic">No sessions recorded for this selection.</p>`;
+      els.sessionsNote.textContent = "";
+      return;
+    }
+
+    els.sessionsList.innerHTML = sessions
+      .map((s) => {
+        const people = queryAll(
+          `SELECT p.first_name || ' ' || p.last_name AS name
+           FROM session_attendance a
+           JOIN players p ON p.player_id = a.player_id
+           WHERE a.session_id = ?
+           ORDER BY p.first_name, p.last_name`,
+          [s.session_id]
+        );
+        const body = people.length
+          ? `<ul class="attendee-list">${people
+              .map((p) => `<li class="attendee-chip">${escapeHtml(p.name)}</li>`)
+              .join("")}</ul>`
+          : `<p class="attendee-empty">No attendance recorded.</p>`;
+
+        return `
+        <details class="session-item">
+          <summary>
+            <span class="session-summary-left">${formatDate(s.session_date)}</span>
+            <span class="session-summary-right">
+              <span class="status-badge ${escapeHtml(s.status)}">${escapeHtml(s.status.replace("_", " "))}</span>
+              <span class="session-count">${s.attendees} player${s.attendees === 1 ? "" : "s"}</span>
+            </span>
+          </summary>
+          ${body}
+        </details>`;
+      })
+      .join("");
+
+    const counted = sessions.filter((s) => s.status !== "cancelled" && s.attendees > 0);
+    const avg = counted.length
+      ? (counted.reduce((sum, s) => sum + s.attendees, 0) / counted.length).toFixed(1)
+      : "0";
+    els.sessionsNote.textContent = `${sessions.length} sessions listed · average attendance ${avg} players per session. Click a session to see who was there.`;
+  }
+
+  function renderAttendanceByPlayer(semWhere, params) {
+    const total = queryScalar(
+      `SELECT COUNT(*) FROM sessions s
+       WHERE ${semWhere} AND s.status IN ('completed', 'in_progress')`,
+      params
+    ) || 0;
+
+    const rows = queryAll(
+      `SELECT p.player_id, p.first_name || ' ' || p.last_name AS player_name,
+              p.is_active, COUNT(a.session_id) AS attended
+       FROM session_attendance a
+       JOIN sessions s ON s.session_id = a.session_id
+       JOIN players p ON p.player_id = a.player_id
+       WHERE ${semWhere}
+       GROUP BY p.player_id
+       ORDER BY attended DESC, player_name ASC`,
+      params
+    );
+
+    if (!rows.length) {
+      els.sessionsList.innerHTML = `<p class="no-data" style="padding:32px;text-align:center;font-style:italic">No attendance recorded for this selection.</p>`;
+      els.sessionsNote.textContent = "";
+      return;
+    }
+
+    els.sessionsList.innerHTML = `
+      <div class="table-wrap" style="margin-top:0;border-top:none">
+        <table class="standings" style="min-width:420px">
+          <thead>
+            <tr>
+              <th class="col-rank">#</th>
+              <th class="col-name">Player</th>
+              <th class="col-played">Attended</th>
+              <th class="col-played">Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows
+              .map((r, i) => {
+                const pct = total ? Math.min(100, Math.round((r.attended / total) * 100)) : 0;
+                return `
+              <tr style="cursor:default" class="${r.is_active ? "" : "inactive-row"}">
+                <td class="col-rank">${i + 1}</td>
+                <td class="col-name">${escapeHtml(r.player_name)}</td>
+                <td class="col-played">${r.attended}${total ? ` / ${total}` : ""}</td>
+                <td class="col-played">${pct}%<span class="attend-bar"><span style="width:${pct}%"></span></span></td>
+              </tr>`;
+              })
+              .join("")}
+          </tbody>
+        </table>
+      </div>`;
+    els.sessionsNote.textContent = `Rate is sessions attended out of ${total} completed or in-progress sessions in this selection.`;
   }
 
   /* ---------------- utils ---------------- */

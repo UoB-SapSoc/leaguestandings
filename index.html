@@ -46,6 +46,7 @@
   </div>
   <ul class="nav-list">
     <li><button class="nav-link" data-nav="standings" type="button">Standings</button></li>
+    <li><button class="nav-link" data-nav="sessions" type="button">Sessions</button></li>
     <li><button class="nav-link" data-nav="statistics" type="button">Statistics</button></li>
     <li><button class="nav-link" data-nav="about" type="button">About</button></li>
   </ul>
@@ -155,6 +156,24 @@
     <h2>League Statistics</h2>
   </section>
 
+  <section class="sessions wrap" id="sessionsSection" hidden>
+    <button class="back-link" id="closeSessions" type="button">&larr; Back to standings</button>
+    <h2>Session Attendance</h2>
+
+    <div class="board-controls">
+      <div class="tabs" role="tablist" aria-label="Attendance view">
+        <button class="tab sessions-tab" data-sview="session" role="tab" aria-selected="true">By session</button>
+        <button class="tab sessions-tab" data-sview="player" role="tab" aria-selected="false">By player</button>
+      </div>
+      <div class="semester-picker">
+        <label for="sessionsSemesterSelect">Semester</label>
+        <select id="sessionsSemesterSelect"></select>
+      </div>
+    </div>
+
+    <div id="sessionsList" class="sessions-list"></div>
+    <p class="table-note" id="sessionsNote"></p>
+  </section>
 
   <!--
     About page. Edit the copy below to fit your league — this is
